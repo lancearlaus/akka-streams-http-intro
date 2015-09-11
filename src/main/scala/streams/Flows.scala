@@ -1,5 +1,6 @@
 package streams
 
+import akka.stream.OverflowStrategy
 import akka.stream.io.Framing
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -50,18 +51,19 @@ object Flows {
 
 
   // Parse incoming CSV and append SMA
-  def appendSma(n: Int): Flow[ByteString, ByteString, Unit] = Flow(
+  def appendSma(N: Int): Flow[ByteString, ByteString, Unit] = Flow(
     parse,
     Broadcast[Array[String]](2),
+    Flow[Array[String]].buffer(N, OverflowStrategy.backpressure),
     select("Adj Close"),
-    calc(n),
-    format(s"Adj Close SMA($n)"),
+    calc(N),
+    format(s"Adj Close SMA($N)"),
     ZipWith((row: Array[String], col: String) => row :+ col),
     csv
-  )((_, _, _, _, _, _, mat) => mat) {
-    implicit builder => (parse, bcast, select, calc, format, append, csv) =>
+  )((_, _, _, _, _, _, _, mat) => mat) {
+    implicit builder => (parse, bcast, buffer, select, calc, format, append, csv) =>
 
-      parse ~> bcast                             ~> append.in0
+      parse ~> bcast ~> buffer                   ~> append.in0
                bcast ~> select ~> calc ~> format ~> append.in1
                                                     append.out ~> csv
 

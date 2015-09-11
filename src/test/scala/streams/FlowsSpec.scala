@@ -73,7 +73,7 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
           outFields shouldBe (inFields :+ smaName)
       }
 
-      // Inspect SMA column
+      // Compare SMA column from output and expected
       val smaCol = parse.via(select(smaName)).drop(1).map(_.toDouble)
       val outSmaFuture = outSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
       val expSmaFuture = expSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
