@@ -55,7 +55,7 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
 //      println(s"output: ${builder.result.utf8String}")
 
       // Inspect row counts
-      val countRows = parse.fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
+      val countRows = parseCsv.fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
       val inCount = inSource.runWith(countRows)
       val outCount = outSource.runWith(countRows)
 
@@ -65,8 +65,8 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
       }
 
       // Inspect header fields
-      val inFieldsFuture = inSource.via(parse).runWith(Sink.head)
-      val outFieldsFuture = outSource.via(parse).runWith(Sink.head)
+      val inFieldsFuture = inSource.via(parseCsv).runWith(Sink.head)
+      val outFieldsFuture = outSource.via(parseCsv).runWith(Sink.head)
 
       whenReady(Future.sequence(Seq(inFieldsFuture, outFieldsFuture))) {
         case inFields :: outFields :: Nil =>
@@ -74,7 +74,7 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
       }
 
       // Compare SMA column from output and expected
-      val smaCol = parse.via(select(smaName)).drop(1).map(_.toDouble)
+      val smaCol = parseCsv.via(select(smaName)).drop(1).map(_.toDouble)
       val outSmaFuture = outSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
       val expSmaFuture = expSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
 

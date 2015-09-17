@@ -23,7 +23,7 @@ object Flows {
   
   // Parse incoming bytes into CSV record stream
   // Note: Each ByteString may contain more (or less) than one line
-  val parse: Flow[ByteString, Array[String], Unit] = Framing
+  val parseCsv: Flow[ByteString, Array[String], Unit] = Framing
     .delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)
     .map(_.utf8String.split("\\s*,\\s*"))
     .log("parse", _.mkString(","))
@@ -52,7 +52,7 @@ object Flows {
 
   // Parse incoming CSV and append SMA
   def appendSma(N: Int): Flow[ByteString, ByteString, Unit] = Flow(
-    parse,
+    parseCsv,
     Broadcast[Array[String]](2),
     Flow[Array[String]].buffer(N, OverflowStrategy.backpressure),
     select("Adj Close"),

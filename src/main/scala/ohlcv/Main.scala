@@ -1,4 +1,4 @@
-package http
+package ohlcv
 
 import java.time.{LocalDate, OffsetDateTime}
 
@@ -12,7 +12,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
-import ohlcv.{Daily, Hourly, Period, Trade}
+import http.TradesClient
 import ohlcv.Flows._
 import ohlcv.Trade.Flows._
 import streams.Flows._
@@ -27,14 +27,6 @@ object Main extends App {
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
 
-  def history(symbol: String, transformer: Flow[ByteString, ByteString, Any] = Flow[ByteString]) = {
-    YahooQuoteService.history(symbol, LocalDate.now.minusMonths(3), LocalDate.now).map[ToResponseMarshallable] {
-      // Map to text/plain instead of csv for easy display in browser
-      case Some(re) => HttpEntity.Chunked.fromData(ContentTypes.`text/plain`, re.dataBytes.via(transformer))
-      case None => NotFound -> s"No data found for the given symbol '$symbol'"
-    }
-  }
-
   def trades(symbol: String, transformer: Flow[ByteString, ByteString, Any] = Flow[ByteString]) = {
     TradesClient.history(symbol).map[ToResponseMarshallable] {
       // Map to text/plain instead of csv for easy display in browser
@@ -46,46 +38,7 @@ object Main extends App {
   def ohlcvCsv(period: Period) =
     parseCsv.via(rowToTrade).via(periodicOHLCV(period)).via(intervalOHLCVtoRow).via(csv)
 
-  def rangedRandom(floor: Double, range: Double) = (floor + (Random.nextDouble() * range))
-
-  // Stream a random quote every second
-  val streamingQuoteSource: Source[Message, Cancellable] = Source.concatMat(
-      Source.single(Array("Date", "Adj Close").mkString(",")),
-      Source(0.seconds, 1.second, Unit)
-        .map(_ => Array(OffsetDateTime.now().toString, rangedRandom(20, 10).formatted("%1.2f")))
-        .via(csv)
-        .map(_.utf8String)
-    )(Keep.right)
-    .map(row => TextMessage(row))
-
-  val streamingQuoteSink = Flow[Message].to(Sink.foreach(m => println(s"received: $m")))
-
-  val streamingQuoteService: Flow[Message, Message, _] =
-    Flow.wrap(streamingQuoteSink, streamingQuoteSource)(Keep.right)
-
-  val symbols = Flow[String]
-    .map(_.trim.split("\\s*,\\s*"))
-
-
   val route =
-    path("hello") {
-      get {
-        complete {
-          "Say hello to akka-http"
-        }
-      }
-    } ~
-    pathPrefix("quote") {
-      path("history" / Segment) { symbol =>
-        get { complete(history(symbol)) }
-      } ~
-      path("history" / Segment / "sma(" ~ IntNumber ~ ")") { (symbol, window) =>
-        get { complete(history(symbol, appendSma(window))) }
-      } ~
-      path("stream") {
-        get { handleWebsocketMessages(streamingQuoteService) }
-      }
-    } ~
     pathPrefix("trades") {
       path("history" / Segment) { symbol =>
         get { complete(trades(symbol)) }

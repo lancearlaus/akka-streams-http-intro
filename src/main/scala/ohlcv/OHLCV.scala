@@ -1,24 +1,18 @@
-package ohlc
+package ohlcv
 
 import java.time.Instant
-import java.util.Date
 
 import scala.math.Ordering.Implicits._
 
-//http://api.bitcoincharts.com/v1/trades.csv?symbol=bitstampUSD
 
-case class Trade(timestamp: Instant, price: Double, amount: Double)
-
-object Trade {
-  def apply(unixtime: Long, price: Double, amount: Double) =
-    new Trade(Instant.ofEpochSecond(unixtime), price, amount)
-}
-
+// Open-High-Low-Close-Volume trade aggregation
 case class OHLCV (
     open: Double, high: Double, low: Double, close: Double,
     volume: Double,
     count: Long, first: Instant, last: Instant)
 {
+
+  // Prepend a trade
   def +:(trade: Trade) =
     trade.timestamp match {
       case t if t <= first =>
@@ -28,6 +22,8 @@ case class OHLCV (
       case t =>
         OHLCV(open, high.max(trade.price), low.min(trade.price), close, volume + trade.amount, count + 1, first, last)
     }
+
+  // Append a trade
   def :+(trade: Trade) =
     trade.timestamp match {
       case t if t < first =>
@@ -37,12 +33,10 @@ case class OHLCV (
       case t =>
         OHLCV(open, high.max(trade.price), low.min(trade.price), close, volume + trade.amount, count + 1, first, last)
     }
+
   def isEmpty = volume == 0.0
-//  def close(e: Instant) = copy(end = e)
 }
 
 object OHLCV {
   def apply(t: Trade) = new OHLCV(t.price, t.price, t.price, t.price, t.amount, 1, t.timestamp, t.timestamp)
-//  def apply(price: Double, time: Instant) = new OHLCV(price, price, price, price, 0.0, time, time)
-//  def open(close: OHLCV, begin: Option[Instant] = None) = OHLCV(close.close, begin.getOrElse(close.last))
 }
