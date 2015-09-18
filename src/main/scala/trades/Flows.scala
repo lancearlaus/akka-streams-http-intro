@@ -7,6 +7,11 @@ import akka.util.ByteString
 
 object Flows {
 
+  private def formatValue(x: Any): String = x match {
+    case d: Double => d.formatted("%1.2f")
+    case _ => x.toString
+  }
+
   object csv {
 
     // Parse incoming bytes into CSV record stream
@@ -34,6 +39,11 @@ object Flows {
     // Convert CSV parsed rows to trades
     lazy val fromRow = Flow[Array[String]].map { case Array(unixtime, price, amount) =>
       Trade(unixtime.toLong, price.toDouble, amount.toDouble)
+    }
+
+    // Convert trades to CSV rows
+    lazy val toRow = Flow[Trade].map { case Trade(timestamp, price, amount) =>
+      Array(timestamp.toString, price.toString, amount.toString)
     }
 
   }
@@ -86,23 +96,18 @@ object Flows {
       .via(period.intervals(p).map(_.via(aggregateInterval)))
       .flatten(FlattenStrategy.concat)
 
-    private def format(x: Any): String = x match {
-      case d: Double => d.formatted("%1.2f")
-      case _ => x.toString
-    }
-
     // Convert interval OHLCVs to CSV-ready row stream with header
     lazy val intervalToRow: Flow[(Interval, OHLCV), Array[String], Unit] =
       Flow[(Interval, OHLCV)]
         .scan(Array("Begin", "End", "Open", "High", "Low", "Close", "Volume")) {
         case (_, (interval, ohlcv)) => Array(
-          format(interval.begin),
-          format(interval.end),
-          format(ohlcv.open),
-          format(ohlcv.high),
-          format(ohlcv.low),
-          format(ohlcv.close),
-          format(ohlcv.volume)
+          formatValue(interval.begin),
+          formatValue(interval.end),
+          formatValue(ohlcv.open),
+          formatValue(ohlcv.high),
+          formatValue(ohlcv.low),
+          formatValue(ohlcv.close),
+          formatValue(ohlcv.volume)
         )
       }
 
