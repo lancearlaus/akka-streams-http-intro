@@ -1,4 +1,4 @@
-package streams
+package quotes
 
 import akka.stream.OverflowStrategy
 import akka.stream.io.Framing

@@ -12,10 +12,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
-import ohlcv.{Daily, Hourly, Period, Trade}
-import ohlcv.Flows._
-import ohlcv.Trade.Flows._
-import streams.Flows._
+import quotes.Flows._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -28,23 +25,12 @@ object Main extends App {
   implicit val ec: ExecutionContext = system.dispatcher
 
   def history(symbol: String, transformer: Flow[ByteString, ByteString, Any] = Flow[ByteString]) = {
-    YahooQuoteService.history(symbol, LocalDate.now.minusMonths(3), LocalDate.now).map[ToResponseMarshallable] {
+    QuotesClient.history(symbol, LocalDate.now.minusMonths(3), LocalDate.now).map[ToResponseMarshallable] {
       // Map to text/plain instead of csv for easy display in browser
       case Some(re) => HttpEntity.Chunked.fromData(ContentTypes.`text/plain`, re.dataBytes.via(transformer))
       case None => NotFound -> s"No data found for the given symbol '$symbol'"
     }
   }
-
-  def trades(symbol: String, transformer: Flow[ByteString, ByteString, Any] = Flow[ByteString]) = {
-    TradesClient.history(symbol).map[ToResponseMarshallable] {
-      // Map to text/plain instead of csv for easy display in browser
-      case Some(re) => HttpEntity.Chunked.fromData(ContentTypes.`text/plain`, re.dataBytes.via(transformer))
-      case None => NotFound -> s"No data found for the given symbol '$symbol'"
-    }
-  }
-
-  def ohlcvCsv(period: Period) =
-    parseCsv.via(rowToTrade).via(periodicOHLCV(period)).via(intervalOHLCVtoRow).via(csv)
 
   def rangedRandom(floor: Double, range: Double) = (floor + (Random.nextDouble() * range))
 
@@ -84,19 +70,6 @@ object Main extends App {
       } ~
       path("stream") {
         get { handleWebsocketMessages(streamingQuoteService) }
-      }
-    } ~
-    pathPrefix("trades") {
-      path("history" / Segment) { symbol =>
-        get { complete(trades(symbol)) }
-      } ~
-      pathPrefix("history" / "ohlcv") {
-        path("daily" / Segment) { symbol =>
-          get { complete(trades(symbol, ohlcvCsv(Daily))) }
-        } ~
-        path("hourly" / Segment) { symbol =>
-          get { complete(trades(symbol, ohlcvCsv(Hourly))) }
-        }
       }
     }
 

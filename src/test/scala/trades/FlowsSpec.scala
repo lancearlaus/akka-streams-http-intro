@@ -1,4 +1,4 @@
-package ohlcv
+package trades
 
 import java.io.File
 
@@ -11,11 +11,10 @@ import streams.AkkaStreamsTest
 
 class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
-  import ohlcv.Flows._
-  import streams.Flows._
+  import trades.Flows._
 
   implicit override def patienceConfig =
-      PatienceConfig(timeout = Span(2, Seconds), interval = Span(50, Millis))
+      PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))
 
   "flow" should "calculate OHLCV" in {
     val inFile = new File(getClass.getResource("/bitstampUSD.csv").getFile)
@@ -26,7 +25,10 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
 
 //    println(s"inputCsv: $inputCsv")
 
-    val future = inSource.via(parseCsv).via(trade).via(periodicOHLCV(Daily)).runWith(collectSink)
+    val future = inSource.via(csv.parse())
+      .via(trade.fromRow)
+      .via(ohlcv.periodic(Daily))
+      .runWith(collectSink)
 
     whenReady(future) { list =>
 

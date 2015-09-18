@@ -15,7 +15,7 @@ import akka.util.ByteString
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object YahooQuoteService {
+object QuotesClient {
 
   val baseUri = Uri("http://real-chart.finance.yahoo.com/table.csv")
 

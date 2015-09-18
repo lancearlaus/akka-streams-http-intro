@@ -1,4 +1,4 @@
-package streams
+package quotes
 
 import java.io.File
 
@@ -8,12 +8,13 @@ import akka.util.{ByteStringBuilder, ByteString}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import akka.stream.scaladsl.FlowGraph.Implicits._
+import streams.AkkaStreamsTest
 
 import scala.concurrent.Future
 
 class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
-  import streams.Flows._
+  import quotes.Flows._
 
   val inCsv =
     """

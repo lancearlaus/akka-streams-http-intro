@@ -1,4 +1,4 @@
-package ohlcv
+package trades
 
 import java.time.Instant
 
@@ -7,8 +7,7 @@ import scala.math.Ordering.Implicits._
 
 // Open-High-Low-Close-Volume trade aggregation
 case class OHLCV (
-    open: Double, high: Double, low: Double, close: Double,
-    volume: Double,
+    open: Double, high: Double, low: Double, close: Double, volume: Double,
     count: Long, first: Instant, last: Instant)
 {
 
@@ -33,8 +32,6 @@ case class OHLCV (
       case t =>
         OHLCV(open, high.max(trade.price), low.min(trade.price), close, volume + trade.amount, count + 1, first, last)
     }
-
-  def isEmpty = volume == 0.0
 }
 
 object OHLCV {

@@ -2,7 +2,7 @@ package streams
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.scalatest.{Suite, BeforeAndAfterAll}
+import org.scalatest.{BeforeAndAfterAll, Suite}
 
 import scala.concurrent.ExecutionContext
 
