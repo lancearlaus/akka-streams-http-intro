@@ -5,7 +5,7 @@ import akka.stream.scaladsl.FlowGraph.Implicits._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
-object Flows {
+object FlowGraphs {
 
   private def formatValue(x: Any): String = x match {
     case d: Double => d.formatted("%1.2f")
@@ -42,8 +42,16 @@ object Flows {
     }
 
     // Convert trades to CSV rows
-    lazy val toRow = Flow[Trade].map { case Trade(timestamp, price, amount) =>
-      Array(timestamp.toString, price.toString, amount.toString)
+    def toRow(addHeader: Boolean = true): Flow[Trade, Array[String], Unit] = {
+      val noHeader = Flow[Trade]
+        .map(t => Array(t.timestamp.toString, t.price.toString, t.amount.toString))
+      addHeader match {
+        case false => noHeader
+        case true => noHeader.prefixAndTail(0).map { case (_, tail) =>
+          Source.single(Array("timestamp", "price", "amount"))
+            .concatMat(tail)(Keep.right)
+        }.flatten(FlattenStrategy.concat)
+      }
     }
 
   }
@@ -110,6 +118,14 @@ object Flows {
           formatValue(ohlcv.volume)
         )
       }
+
+  }
+
+  object chunk {
+
+    // Ensure a minimum chunk size to avoid over-chunking (small chunks)
+    def min(minimumSize: Int) = Flow[ByteString]
+      .transform(() => ChunkingStage(minimumSize))
 
   }
 

@@ -1,4 +1,4 @@
-package http
+package quotes
 
 import java.time.{LocalDate, OffsetDateTime}
 
@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
 
-object Main extends App {
+object Server extends App {
 
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()

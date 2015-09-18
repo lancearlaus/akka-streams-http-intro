@@ -3,6 +3,7 @@ package trades
 import java.time.Instant
 import java.time.format.DateTimeParseException
 
+import akka.stream.scaladsl.Source
 import spray.json._
 
 trait JsonProtocol extends DefaultJsonProtocol {

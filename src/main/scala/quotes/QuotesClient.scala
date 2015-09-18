@@ -1,4 +1,4 @@
-package http
+package quotes
 
 import java.io.IOException
 import java.time.LocalDate
@@ -7,11 +7,9 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{ResponseEntity, HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.{ResponseEntity, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
 
 import scala.concurrent.{ExecutionContext, Future}
 

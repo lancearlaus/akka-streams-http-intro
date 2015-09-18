@@ -11,7 +11,7 @@ import streams.AkkaStreamsTest
 
 class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
-  import trades.Flows._
+  import trades.FlowGraphs._
 
   implicit override def patienceConfig =
       PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))
