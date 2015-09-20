@@ -1,6 +1,6 @@
-package trades
+package http
 
-import akka.stream.stage.{TerminationDirective, Context, PushPullStage, SyncDirective}
+import akka.stream.stage.{Context, PushPullStage, SyncDirective, TerminationDirective}
 import akka.util.ByteString
 
 

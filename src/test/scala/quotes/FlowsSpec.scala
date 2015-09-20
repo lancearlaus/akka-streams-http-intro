@@ -14,7 +14,7 @@ import scala.concurrent.Future
 
 class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
-  import quotes.Flows._
+  import quotes.FlowGraphs._
 
   val inCsv =
     """
@@ -49,14 +49,14 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
     val window = 3
     val smaName = s"Adj Close SMA($window)"
 
-    val future = inSource.via(appendSma(window)).runWith(outSink)
+    val future = inSource.via(csv.parse().via(quote.appendSma(window)).via(csv.format)).runWith(outSink)
 
     whenReady(future) { bytesWritten =>
 
 //      println(s"output: ${builder.result.utf8String}")
 
       // Inspect row counts
-      val countRows = parseCsv.fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
+      val countRows = csv.parse().fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
       val inCount = inSource.runWith(countRows)
       val outCount = outSource.runWith(countRows)
 
@@ -66,8 +66,8 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
       }
 
       // Inspect header fields
-      val inFieldsFuture = inSource.via(parseCsv).runWith(Sink.head)
-      val outFieldsFuture = outSource.via(parseCsv).runWith(Sink.head)
+      val inFieldsFuture = inSource.via(csv.parse()).runWith(Sink.head)
+      val outFieldsFuture = outSource.via(csv.parse()).runWith(Sink.head)
 
       whenReady(Future.sequence(Seq(inFieldsFuture, outFieldsFuture))) {
         case inFields :: outFields :: Nil =>
@@ -75,7 +75,7 @@ class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFu
       }
 
       // Compare SMA column from output and expected
-      val smaCol = parseCsv.via(select(smaName)).drop(1).map(_.toDouble)
+      val smaCol = csv.parse().via(csv.select(smaName)).drop(1).map(_.toDouble)
       val outSmaFuture = outSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
       val expSmaFuture = expSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
 

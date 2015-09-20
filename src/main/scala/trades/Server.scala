@@ -3,7 +3,7 @@ package trades
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
+import akka.stream.{Materializer, ActorMaterializer}
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -16,7 +16,7 @@ object Server extends App with Service {
 
   override implicit val system = ActorSystem("trades-server")
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
-  override implicit val materializer = ActorMaterializer()
+  override implicit val materializer: Materializer = ActorMaterializer()
 
   override val logger = Logging(system, getClass)
   val config = ConfigFactory.load()

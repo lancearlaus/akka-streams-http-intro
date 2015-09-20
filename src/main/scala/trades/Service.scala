@@ -9,6 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
+import http.FlowGraphs.chunk
 import trades.FlowGraphs._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -16,8 +17,8 @@ import scala.concurrent.ExecutionContextExecutor
 trait Service {
 
   implicit val system: ActorSystem
-  implicit def executor: ExecutionContextExecutor
-  implicit def materializer: Materializer
+  implicit val executor: ExecutionContextExecutor
+  implicit val materializer: Materializer
 
   val logger: LoggingAdapter
 

@@ -121,12 +121,4 @@ object FlowGraphs {
 
   }
 
-  object chunk {
-
-    // Ensure a minimum chunk size to avoid over-chunking (small chunks)
-    def min(minimumSize: Int) = Flow[ByteString]
-      .transform(() => ChunkingStage(minimumSize))
-
-  }
-
 }
