@@ -16,3 +16,5 @@ libraryDependencies ++= Seq(
 homepage := Some(url("https://github.com/lancearlaus/akka-streams-http-presentation"))
 
 licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+
+mainClass in (Compile, run) := Some("Main")

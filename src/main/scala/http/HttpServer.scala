@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
  * 1. Extend the [HttpService] trait to implement the route for your service. See the [HttpService] trait
  *    for more information.
  * 2. Create an application class that extends the Scala `App` class, the `HttpServer` trait, and the
- *    `HttpService`-derived trait.
+ *    `HttpService`-derived trait(s).
  *
  * Example:
  * {{{
