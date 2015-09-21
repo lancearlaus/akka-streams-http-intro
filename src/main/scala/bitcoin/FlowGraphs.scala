@@ -1,48 +1,20 @@
-package trades
+package bitcoin
 
-import akka.stream.io.Framing
 import akka.stream.scaladsl.FlowGraph.Implicits._
 import akka.stream.scaladsl._
-import akka.util.ByteString
 
 object FlowGraphs {
 
-  private def formatValue(x: Any): String = x match {
-    case d: Double => d.formatted("%1.2f")
-    case _ => x.toString
-  }
-
-  object csv {
-
-    // Parse incoming bytes into CSV record stream
-    // Note: Each ByteString may contain more (or less) than one line
-    def parse(maximumLineLength: Int = 256): Flow[ByteString, Array[String], Unit] =
-      Framing.delimiter(ByteString("\n"), maximumLineLength, allowTruncation = true)
-        .map(_.utf8String.split("\\s*,\\s*"))
-
-    // Select a specific column (including header) by name
-    def select(name: String): Flow[Array[String], String, Unit] = Flow[Array[String]]
-      .prefixAndTail(1).map { case (header, rows) =>
-      header.head.indexOf(name) match {
-        case -1    => Source.empty[String]    // Named column not found
-        case index => Source.single(name).concatMat(rows.map(_(index)))(Keep.right)
-      }
-    }.flatten(FlattenStrategy.concat)
-
-    // Convert Array[String] into CSV formatted ByteString
-    lazy val format = Flow[Array[String]].map(row => ByteString(row.mkString("", ",", "\n")))
-
-  }
-
   object trade {
+    import csv._
 
     // Convert CSV parsed rows to trades
-    lazy val fromRow = Flow[Array[String]].map { case Array(unixtime, price, amount) =>
+    lazy val fromRow = Flow[Row].map { case Array(unixtime, price, amount) =>
       Trade(unixtime.toLong, price.toDouble, amount.toDouble)
     }
 
     // Convert trades to CSV rows
-    def toRow(addHeader: Boolean = true): Flow[Trade, Array[String], Unit] = {
+    def toRow(addHeader: Boolean = true): Flow[Trade, Row, Unit] = {
       val noHeader = Flow[Trade]
         .map(t => Array(t.timestamp.toString, t.price.toString, t.amount.toString))
       addHeader match {
@@ -60,7 +32,7 @@ object FlowGraphs {
 
     // Split a stream of time ordered trades into sub-streams by interval
     // Each sub-stream emits (Interval, Trade) elements
-    def intervals(period: Period) = Flow[Trade]
+    def intervals(period: Periodic) = Flow[Trade]
       .scan((Interval.empty, Interval.empty, null.asInstanceOf[Trade])) {
         case ((_, cur, _), trade) =>
           (cur.contains(trade.timestamp)) match {
@@ -75,6 +47,7 @@ object FlowGraphs {
   }
 
   object ohlcv {
+    import csv._
 
     // Calculate OHLCV aggregate for a stream of trades
     lazy val aggregate = Flow[Trade]
@@ -100,12 +73,17 @@ object FlowGraphs {
       }
 
     // Calculate the periodic OHLCV for a stream of trades
-    def periodic(p: Period) = Flow[Trade]
+    def periodic(p: Periodic) = Flow[Trade]
       .via(period.intervals(p).map(_.via(aggregateInterval)))
       .flatten(FlattenStrategy.concat)
 
+    private def formatValue(x: Any): String = x match {
+      case d: Double => d.formatted("%1.2f")
+      case _ => x.toString
+    }
+
     // Convert interval OHLCVs to CSV-ready row stream with header
-    lazy val intervalToRow: Flow[(Interval, OHLCV), Array[String], Unit] =
+    lazy val intervalToRow: Flow[(Interval, OHLCV), Row, Unit] =
       Flow[(Interval, OHLCV)]
         .scan(Array("Begin", "End", "Open", "High", "Low", "Close", "Volume")) {
         case (_, (interval, ohlcv)) => Array(

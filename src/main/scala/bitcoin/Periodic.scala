@@ -1,4 +1,4 @@
-package trades
+package bitcoin
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -15,25 +15,33 @@ object Interval {
 }
 
 
-// Segments a time line into periodic intervals
-sealed trait Period {
+// Segments a time line into aligned periodic intervals
+sealed trait Periodic {
+  // Returns the periodic interval containing an instant
   def interval(instant: Instant): Interval
 }
 
-object Period {
+object Periodic {
   // Calculates the periodic interval containing an instant
-  def interval(instant: Instant, chronoUnit: ChronoUnit) = {
+  // for standard chronological units
+  def interval(instant: Instant, chronoUnit: ChronoUnit): Interval = {
     val begin = instant.truncatedTo(chronoUnit)
     val end = begin.plus(1, chronoUnit)
     Interval(begin, end)
   }
+
+  def unapply(s: String): Option[Periodic] = s match {
+    case s if s matches "(?i)daily" => Some(Daily)
+    case s if s matches "(?i)hourly" => Some(Hourly)
+    case _ => None
+  }
 }
 
-case object Daily extends Period {
+case object Daily extends Periodic {
   override def interval(instant: Instant) =
-    Period.interval(instant, ChronoUnit.DAYS)
+    Periodic.interval(instant, ChronoUnit.DAYS)
 }
-case object Hourly extends Period {
+case object Hourly extends Periodic {
   override def interval(instant: Instant) =
-    Period.interval(instant, ChronoUnit.HOURS)
+    Periodic.interval(instant, ChronoUnit.HOURS)
 }

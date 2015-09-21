@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.reject
 import akka.stream.Materializer
+import com.typesafe.config.Config
 
 
 import scala.concurrent.ExecutionContextExecutor
@@ -37,6 +38,8 @@ trait HttpService {
   protected implicit val system: ActorSystem
   protected implicit def executor: ExecutionContextExecutor
   protected implicit def materializer: Materializer
+  protected implicit def config: Config
 
+  // Services must supply service route by overriding this function
   def route: Route = reject
 }

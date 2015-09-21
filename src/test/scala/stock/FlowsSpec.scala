@@ -1,4 +1,4 @@
-package quotes
+package stock
 
 import java.io.File
 
@@ -14,7 +14,7 @@ import scala.concurrent.Future
 
 class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
-  import quotes.FlowGraphs._
+  import stock.FlowGraphs._
 
   val inCsv =
     """

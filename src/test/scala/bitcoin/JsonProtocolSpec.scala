@@ -1,8 +1,8 @@
-package trades
+package bitcoin
 
 import java.time.Instant
 
-import trades.JsonProtocol._
+import bitcoin.JsonProtocol._
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}

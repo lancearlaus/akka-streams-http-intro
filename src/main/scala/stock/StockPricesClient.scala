@@ -1,4 +1,4 @@
-package quotes
+package stock
 
 import java.io.IOException
 import java.time.LocalDate
@@ -8,33 +8,32 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{StatusCode, ResponseEntity, Uri}
+import akka.http.scaladsl.model.{StatusCode, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
-import trades.FlowGraphs.{trade, csv}
-import trades.Trade
+import csv.Row
 
-import scala.concurrent.{ExecutionContextExecutor, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
-trait QuotesClient {
+trait StockPricesClient {
   type Response[T] = Future[Either[(StatusCode, String), T]]
 
   def history(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[Row, Any]]
   def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]]
 }
 
-case class YahooQuotesClient(implicit
-                                     system: ActorSystem,
-                                     executor: ExecutionContextExecutor,
-                                     materializer: Materializer)
-  extends QuotesClient
+case class YahooStockPricesClient(implicit
+    system: ActorSystem,
+    executor: ExecutionContextExecutor,
+    materializer: Materializer)
+  extends StockPricesClient
 {
   val logger = Logging(system, getClass)
   val config = ConfigFactory.load()
-  val baseUri = Uri(config.getString("service.quotes.history.url"))
+  val baseUri = Uri(config.getString("service.stocks.history.url"))
 
 
   protected def buildUri(symbol: String, begin: LocalDate, end: LocalDate) = {
@@ -58,8 +57,8 @@ case class YahooQuotesClient(implicit
       logger.info(s"Received response (${response.status}) from $uri")
       response.status match {
         case OK => Future.successful(Right(response.entity.dataBytes))
-        case NotFound => Future.successful(Left(
-          NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)"))
+        case NotFound => Future.successful(
+          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)"))
         case status => Unmarshal(response.entity).to[String].flatMap { entity =>
           val error = s"Request to $uri failed with status code $status and entity $entity"
           logger.error(error)

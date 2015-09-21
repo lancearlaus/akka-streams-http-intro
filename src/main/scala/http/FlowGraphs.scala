@@ -3,7 +3,7 @@ package http
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
-object FlowGraphs {
+trait FlowGraphs {
 
   object chunk {
 

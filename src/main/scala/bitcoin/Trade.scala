@@ -1,4 +1,4 @@
-package trades
+package bitcoin
 
 import java.time.Instant
 
