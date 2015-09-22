@@ -5,7 +5,7 @@ import java.time.{LocalDate, Period}
 import akka.event.Logging
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
@@ -16,13 +16,13 @@ import stock.PeriodConversions._
 
 trait StockPricesService extends HttpService {
 
-  private lazy val logger = Logging(system, classOf[StockPricesService])
+  private lazy val log = Logging(system, classOf[StockPricesService])
   protected lazy val quotesClient: StockPricesClient = YahooStockPricesClient()
 
   val DefaultPeriod: Period = config.getString("service.stocks.period.default")
 
   abstract override def route =
-    (get & pathPrefix("stock" / "prices" / "daily")) {
+    (get & pathPrefix("stock"/"prices"/"daily")) {
       (path(Segment) & parameters('raw.as[Boolean] ! true, 'period.as[Period] ? DefaultPeriod)) { (symbol, period) =>
         complete(fetchRaw(symbol, period))
       } ~
@@ -49,7 +49,7 @@ trait StockPricesService extends HttpService {
     response.map[ToResponseMarshallable] {
       case Right(source) => HttpEntity.Chunked
         // Map to text/plain instead of csv for easy display in browser
-        .fromData(ContentTypes.`text/plain`, source.via(transformer).via(chunk.min(2048)))
+        .fromData(MediaTypes.`text/plain`, source.via(transformer).via(chunk.min(2048)))
       case Left(err@(NotFound, _)) => err
       case Left(_) => ServiceUnavailable -> "Service unavailable - error calling an underlying service"
     }

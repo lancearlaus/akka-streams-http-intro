@@ -1,4 +1,5 @@
 import http.HttpServer
+import sample.SampleStockPricesService
 import stock.StockPricesService
 import bitcoin.BitcoinTradesService
 
@@ -14,8 +15,12 @@ import scala.util.Success
  *   multiple services.
  * - Default server and services configuration is contained in reference.conf in the resources directory.
  */
-object Main extends App with HttpServer with StockPricesService with BitcoinTradesService {
-
+object Main extends App
+  with HttpServer
+  with StockPricesService
+  with BitcoinTradesService
+  with SampleStockPricesService
+{
   bindingFuture.andThen { case Success(binding) =>
     val host = binding.localAddress.getHostName
     val port = binding.localAddress.getPort
