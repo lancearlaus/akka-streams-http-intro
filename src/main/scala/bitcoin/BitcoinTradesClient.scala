@@ -31,7 +31,7 @@ case class BitcoinChartsTradesClient(implicit
     materializer: Materializer)
   extends BitcoinTradesClient
 {
-  val logger = Logging(system, getClass)
+  val log = Logging(system, getClass)
   val config = ConfigFactory.load()
   val baseUri = Uri(config.getString("service.bitcoin.trades.url"))
 
@@ -41,20 +41,25 @@ case class BitcoinChartsTradesClient(implicit
   override def rawHistory(symbol: String): Response[Source[ByteString, Any]] = {
     val uri = baseUri.withQuery(Map("symbol" -> symbol))
 
-    logger.info(s"Sending request for $uri")
+    log.info(s"Sending request for $uri")
 
-    Http().singleRequest(RequestBuilding.Get(uri)).flatMap { response =>
-      logger.info(s"Received response (${response.status}) from $uri")
+    Http().singleRequest(RequestBuilding.Get(uri)).map { response =>
+      log.info(s"Received response (${response.status}) from $uri")
       response.status match {
-        case OK => Future.successful(Right(response.entity.dataBytes))
-        case Found | NotFound => Future.successful(
-          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol)"))
-        case status => Unmarshal(response.entity).to[String].flatMap { entity =>
-          val error = s"Request to $uri failed with status code $status and entity $entity"
-          logger.error(error)
-          Future.failed(new IOException(error))
-        }
+        case OK               => Right(response.entity.dataBytes)
+        case Found | NotFound => Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol)")
+        case status           => Left(status -> s"Request to $uri failed with status $status")
       }
+//      response.status match {
+//        case OK => Future.successful(Right(response.entity.dataBytes))
+//        case Found | NotFound => Future.successful(
+//          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol)"))
+//        case status => Unmarshal(response.entity).to[String].map { entity =>
+//          val error = s"Request to $uri failed with status $status and entity $entity"
+//          logger.error(error)
+//          Left(status -> error)
+//        }
+//      }
     }
   }
 

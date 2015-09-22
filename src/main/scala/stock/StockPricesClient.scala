@@ -31,7 +31,7 @@ case class YahooStockPricesClient(implicit
     materializer: Materializer)
   extends StockPricesClient
 {
-  val logger = Logging(system, getClass)
+  val log = Logging(system, getClass)
   val config = ConfigFactory.load()
   val baseUri = Uri(config.getString("service.stocks.history.url"))
 
@@ -51,20 +51,25 @@ case class YahooStockPricesClient(implicit
   override def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]] = {
     val uri = buildUri(symbol, begin, end)
 
-    logger.info(s"Sending request for $uri")
+    log.info(s"Sending request for $uri")
 
-    Http().singleRequest(RequestBuilding.Get(uri)).flatMap { response =>
-      logger.info(s"Received response (${response.status}) from $uri")
+    Http().singleRequest(RequestBuilding.Get(uri)).map { response =>
+      log.info(s"Received response (${response.status}) from $uri")
       response.status match {
-        case OK => Future.successful(Right(response.entity.dataBytes))
-        case NotFound => Future.successful(
-          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)"))
-        case status => Unmarshal(response.entity).to[String].flatMap { entity =>
-          val error = s"Request to $uri failed with status code $status and entity $entity"
-          logger.error(error)
-          Future.failed(new IOException(error))
-        }
+        case OK       => Right(response.entity.dataBytes)
+        case NotFound => Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)")
+        case status   => Left(status -> s"Request to $uri failed with status $status")
       }
+//      response.status match {
+//        case OK => Future.successful(Right(response.entity.dataBytes))
+//        case NotFound => Future.successful(
+//          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)"))
+//        case status => Unmarshal(response.entity).to[String].flatMap { entity =>
+//          val error = s"Request to $uri failed with status code $status and entity $entity"
+//          logger.error(error)
+//          Future.failed(new IOException(error))
+//        }
+//      }
     }
 
   }
