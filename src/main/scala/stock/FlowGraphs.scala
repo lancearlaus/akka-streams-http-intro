@@ -32,11 +32,11 @@ object FlowGraphs {
     def smaCol(name: String, N: Int, format: String = "%1.2f") = Flow[String]
       .prefixAndTail(1)
       .map { case (header, data) =>
-        Source.single(name).concat(
+        Source.single(name).concatMat(
           data.map(_.toDouble)
             .via(calculate.sma((N)))
             .map(_.formatted(format))
-        )
+        )(Keep.right)
       }
       .flatten(FlattenStrategy.concat)
 

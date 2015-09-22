@@ -1,14 +1,11 @@
 package stock
 
-import java.io.File
-
-import akka.stream.io.{SynchronousFileSink, SynchronousFileSource}
 import akka.stream.scaladsl._
-import akka.util.{ByteStringBuilder, ByteString}
+import akka.util.{ByteString, ByteStringBuilder}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
-import akka.stream.scaladsl.FlowGraph.Implicits._
 import streams.AkkaStreamsTest
+import FlowGraphs._
 
 import scala.concurrent.Future
 
@@ -32,6 +29,20 @@ class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with Sc
       |2014-12-30, 26.28, 26.37, 25.29, 25.36, 766100,  25.36,     26.16
     """.stripMargin.trim
 
+
+  "SMA flow" should "calculate properly" in {
+
+    val future = Source(1 to 5)
+      .map(n => (n*n).toDouble)
+      .via(calculate.sma(3))
+      .runFold(List.empty[Double])(_ :+ _)
+//      .runForeach(sma => println(f"$sma%1.2f")
+
+    whenReady(future)(_.map(_.formatted("%1.2f")) shouldBe List("4.67", "9.67", "16.67"))
+
+  }
+
+
   "flow" should "append SMA" in {
 //    val inSource = SynchronousFileSource(new File("input.csv"))
 //    val expSource = SynchronousFileSource(new File("expected.csv"))
@@ -51,7 +62,7 @@ class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with Sc
 
     val future = inSource.via(csv.parse().via(quote.appendSma(window)).via(csv.format)).runWith(outSink)
 
-    whenReady(future) { bytesWritten =>
+    whenReady(future) { unit =>
 
 //      println(s"output: ${builder.result.utf8String}")
 
@@ -75,14 +86,14 @@ class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with Sc
       }
 
       // Compare SMA column from output and expected
-      val smaCol = csv.parse().via(csv.select(smaName)).drop(1).map(_.toDouble)
-      val outSmaFuture = outSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
-      val expSmaFuture = expSource.via(smaCol).runFold(List.empty[Double])(_ :+ _)
+      val selectSma = csv.parse().via(csv.select(smaName)).drop(1).map(_.toDouble)
+      val outFuture = outSource.via(selectSma).runFold(List.empty[Double])(_ :+ _)
+      val expFuture = expSource.via(selectSma).runFold(List.empty[Double])(_ :+ _)
 
-      whenReady(Future.sequence(Seq(outSmaFuture, expSmaFuture))) {
-        case outSma :: expSma :: Nil =>
-          outSma should have size expSma.size
-          outSma.zip(expSma).foreach { case (out, exp) =>
+      whenReady(Future.sequence(Seq(outFuture, expFuture))) {
+        case out :: exp :: Nil =>
+          out should have size exp.size
+          out.zip(exp).foreach { case (out, exp) =>
             out shouldBe exp
           }
       }

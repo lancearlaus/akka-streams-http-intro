@@ -7,6 +7,7 @@ import akka.http.scaladsl.unmarshalling.Unmarshaller
 
 object PeriodConversions {
 
+  // Implicit conversion from String (with or without "P" prefix) to Period
   implicit def stringToPeriod(s: String): Period = s.head match {
     case 'P'|'p' => Period.parse(s)
     case _ => Period.parse("P" + s)
@@ -15,17 +16,5 @@ object PeriodConversions {
   // Usage (in a route): parameter('period.as[Period])
   implicit val periodFromStringUnmarshaller: Unmarshaller[String, Period] =
     Unmarshaller.strict[String, Period](s => stringToPeriod(s))
-
-  // Period extractor helper object
-//  object JavaPeriod {
-//    // Extract Period from String, with or without P prefix
-//    def unapply(string: String): Option[Period] = {
-//      try {
-//        Some(stringToPeriod(string))
-//      } catch {
-//        case e: DateTimeParseException => None
-//      }
-//    }
-//  }
 
 }

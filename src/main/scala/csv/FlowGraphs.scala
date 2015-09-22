@@ -19,11 +19,11 @@ trait FlowGraphs {
   // Select a specific column (including header) by name
   def select(name: String): Flow[Row, String, Unit] = Flow[Row]
     .prefixAndTail(1).map { case (header, rows) =>
-    header.head.indexOf(name) match {
-      case -1    => Source.empty[String]    // Named column not found
-      case index => Source.single(name).concatMat(rows.map(_(index)))(Keep.right)
-    }
-  }.flatten(FlattenStrategy.concat)
+      header.head.indexOf(name) match {
+        case -1    => Source.empty[String]    // Named column not found
+        case index => Source.single(name).concatMat(rows.map(_(index)))(Keep.right)
+      }
+    }.flatten(FlattenStrategy.concat)
 
   // Convert Row into CSV formatted ByteString
   lazy val format = Flow[Row].map(row => ByteString(row.mkString("", ",", "\n")))
