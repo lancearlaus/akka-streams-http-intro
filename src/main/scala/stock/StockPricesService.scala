@@ -6,6 +6,7 @@ import akka.event.Logging
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
+import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
@@ -47,10 +48,9 @@ trait StockPricesService extends HttpService {
 
   private def handle[T](response: StockPricesClient#Response[Source[T, _]], transformer: Flow[T, ByteString, Any]) = {
     response.map[ToResponseMarshallable] {
-      case Right(source) => HttpEntity.Chunked
-        // Map to text/plain instead of csv for easy display in browser
-        .fromData(MediaTypes.`text/plain`, source.via(transformer).via(chunk.min(2048)))
-      case Left(err@(NotFound, _)) => err
+      // Map to text/plain instead of csv for easy display in browser
+      case Right(source) => HttpEntity.Chunked.fromData(`text/plain`, source.via(transformer).via(chunk.min(2048)))
+      case Left(err @ (NotFound, _)) => err
       case Left(_) => ServiceUnavailable -> "Service unavailable - error calling an underlying service"
     }
   }
