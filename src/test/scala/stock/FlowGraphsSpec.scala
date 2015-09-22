@@ -12,7 +12,7 @@ import streams.AkkaStreamsTest
 
 import scala.concurrent.Future
 
-class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
   import stock.FlowGraphs._
 
