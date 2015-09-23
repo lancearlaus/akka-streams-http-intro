@@ -1,6 +1,5 @@
 package stock
 
-import java.io.IOException
 import java.time.LocalDate
 
 import akka.actor.ActorSystem
@@ -9,7 +8,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{StatusCode, Uri}
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -18,18 +16,18 @@ import csv.Row
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-trait StockPricesClient {
+trait StockPriceClient {
   type Response[T] = Future[Either[(StatusCode, String), T]]
 
   def history(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[Row, Any]]
   def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]]
 }
 
-case class YahooStockPricesClient(implicit
+case class YahooStockPriceClient(implicit
     system: ActorSystem,
     executor: ExecutionContextExecutor,
     materializer: Materializer)
-  extends StockPricesClient
+  extends StockPriceClient
 {
   val log = Logging(system, getClass)
   val config = ConfigFactory.load()

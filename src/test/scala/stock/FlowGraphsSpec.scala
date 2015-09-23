@@ -5,7 +5,6 @@ import akka.util.{ByteString, ByteStringBuilder}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import streams.AkkaStreamsTest
-import FlowGraphs._
 
 import scala.concurrent.Future
 

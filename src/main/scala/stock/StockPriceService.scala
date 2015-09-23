@@ -15,15 +15,15 @@ import http._
 import stock.FlowGraphs._
 import stock.PeriodConversions._
 
-trait StockPricesService extends HttpService {
+trait StockPriceService extends HttpService {
 
-  private lazy val log = Logging(system, classOf[StockPricesService])
-  protected lazy val quotesClient: StockPricesClient = YahooStockPricesClient()
+  private lazy val log = Logging(system, classOf[StockPriceService])
+  protected lazy val quotesClient: StockPriceClient = YahooStockPriceClient()
 
   val DefaultPeriod: Period = config.getString("service.stocks.period.default")
 
   abstract override def route =
-    (get & pathPrefix("stock"/"prices"/"daily")) {
+    (get & pathPrefix("stock"/"price"/"daily")) {
       (path(Segment) & parameters('raw.as[Boolean] ! true, 'period.as[Period] ? DefaultPeriod)) { (symbol, period) =>
         complete(fetchRaw(symbol, period))
       } ~
@@ -46,7 +46,7 @@ trait StockPricesService extends HttpService {
     handle(quotesClient.rawHistory(symbol, now.minus(period), now), Flow[ByteString])
   }
 
-  private def handle[T](response: StockPricesClient#Response[Source[T, _]], transformer: Flow[T, ByteString, Any]) = {
+  private def handle[T](response: StockPriceClient#Response[Source[T, _]], transformer: Flow[T, ByteString, Any]) = {
     response.map[ToResponseMarshallable] {
       // Map to text/plain instead of csv for easy display in browser
       case Right(source) => HttpEntity.Chunked.fromData(`text/plain`, source.via(transformer).via(chunk.min(2048)))

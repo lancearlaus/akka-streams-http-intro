@@ -29,23 +29,23 @@ object FlowGraphs {
     import csv._
 
     // Calculate and format SMA for a column, renaming the column
-    def smaCol(name: String, N: Int, format: String = "%1.2f") = Flow[String]
+    def smaCol(name: String, n: Int, format: String = "%1.2f") = Flow[String]
       .prefixAndTail(1)
       .map { case (header, data) =>
         Source.single(name).concatMat(
           data.map(_.toDouble)
-            .via(calculate.sma((N)))
+            .via(calculate.sma((n)))
             .map(_.formatted(format))
         )(Keep.right)
       }
       .flatten(FlattenStrategy.concat)
 
     // Calculate and append SMA column
-    def appendSma(N: Int): Flow[Row, Row, Unit] = Flow(
+    def appendSma(n: Int): Flow[Row, Row, Unit] = Flow(
       Broadcast[Row](2),
-      Flow[Row].buffer(N, OverflowStrategy.backpressure),
+      Flow[Row].buffer(n, OverflowStrategy.backpressure),
       csv.select("Adj Close"),
-      smaCol(s"Adj Close SMA($N)", N),
+      smaCol(s"Adj Close SMA($n)", n),
       ZipWith((row: Row, col: String) => row :+ col)
     )((_, _, _, _, mat) => mat) {
       implicit builder => (bcast, buffer, select, smaCol, append) =>
