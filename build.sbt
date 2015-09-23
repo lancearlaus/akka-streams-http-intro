@@ -1,4 +1,4 @@
-name := "akka-streams-http-presentation"
+name := "akka-streams-http-introduction"
 
 organization := "com.lancearlaus"
 
@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "org.scalatest"     %% "scalatest"                          % "2.2.1" % "test"
 )
 
-homepage := Some(url("https://github.com/lancearlaus/akka-streams-http-presentation"))
+homepage := Some(url("https://github.com/lancearlaus/akka-streams-http-introduction"))
 
 licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
