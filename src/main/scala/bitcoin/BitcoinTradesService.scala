@@ -18,7 +18,7 @@ trait BitcoinTradesService extends HttpService {
 
   abstract override def route =
     (get & pathPrefix("bitcoin")) {
-      path("prices" / PeriodicSegment / Segment / Segment) {
+      path("price" / PeriodicSegment / Segment / Segment) {
         (periodic, exchange, currency) =>
           val symbol = exchange + currency
           complete(fetch(symbol, periodicOHLCV(periodic)))

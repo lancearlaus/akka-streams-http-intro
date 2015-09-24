@@ -43,10 +43,10 @@ trait HttpServer {
 
   protected val config = ConfigFactory.load()
 
-  val interface = config.getString("http.server.interface")
-  val port      = config.getInt("http.server.port")
+  def interface = config.getString("http.server.interface")
+  def port      = config.getInt("http.server.port")
 
-  // Route defined in a service class
+  // Route defined in service class
   def route: Route
 
   print(s"Starting server on $interface:$port...")

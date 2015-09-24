@@ -21,7 +21,6 @@ trait MockStockPriceService extends HttpService {
       .flatMap(url => Option(new File(url.getFile)))
         .filter(_.exists)
 
-  // http://localhost/stock/price/daily/yhoo
   abstract override def route: Route =
     (get & path("stock"/"price"/"daily" / Segment)) { (symbol) =>
       log.info(s"Received request for $symbol")

@@ -1,7 +1,6 @@
-import http.HttpServer
-import stock.mock.MockStockPriceService
-import stock.StockPriceService
 import bitcoin.BitcoinTradesService
+import http.HttpServer
+import stock.StockPriceService
 
 import scala.util.Success
 
@@ -17,10 +16,10 @@ import scala.util.Success
  */
 object Main extends App
   with HttpServer
-//  with StockPriceService
+  with StockPriceService
   with BitcoinTradesService
-  with MockStockPriceService
 {
+  override def port = 9090
   bindingFuture.andThen { case Success(binding) =>
     val host = binding.localAddress.getHostName
     val port = binding.localAddress.getPort
