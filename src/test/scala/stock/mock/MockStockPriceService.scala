@@ -18,7 +18,7 @@ trait MockStockPriceService extends HttpService {
   // Find mock data file (if it exists) for the given symbol
   private def mockFile(symbol: String): Option[File] =
     Option(getClass.getResource(s"/mock/stock/price/$symbol.csv"))
-      .flatMap(url => Option(new File(url.getFile)))
+      .map(url => new File(url.getFile))
         .filter(_.exists)
 
   abstract override def route: Route =
