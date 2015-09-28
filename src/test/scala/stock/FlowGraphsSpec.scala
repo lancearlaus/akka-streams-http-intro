@@ -51,7 +51,7 @@ class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with Sc
     val inSource = Source.single(ByteString(inCsv))
     val expSource = Source.single(ByteString(expCsv))
     val builder = new ByteStringBuilder()
-    val outSink = Sink.foreach[ByteString](bs => builder ++= bs)
+    val outSink = Sink.foreach[ByteString](builder ++= _)
     val outSource = Source(() => Iterator.single(builder.result()))
 
 //    println(s"inputCsv: $inputCsv")

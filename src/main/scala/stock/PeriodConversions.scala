@@ -1,9 +1,10 @@
 package stock
 
 import java.time.Period
-import java.time.format.DateTimeParseException
 
 import akka.http.scaladsl.unmarshalling.Unmarshaller
+
+import scala.language.implicitConversions
 
 object PeriodConversions {
 

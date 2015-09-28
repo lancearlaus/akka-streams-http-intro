@@ -1,4 +1,5 @@
 import bitcoin.BitcoinTradesService
+import bitcoin.ws.BitcoinTradesWebsocketService
 import http.HttpServer
 import stock.StockPriceService
 
@@ -18,8 +19,8 @@ object Main extends App
   with HttpServer
   with StockPriceService
   with BitcoinTradesService
+  with BitcoinTradesWebsocketService
 {
-  override def port = 9090
   bindingFuture.andThen { case Success(binding) =>
     val host = binding.localAddress.getHostName
     val port = binding.localAddress.getPort
@@ -35,6 +36,8 @@ object Main extends App
          |   Daily  OHLCV (itBit USD)      : http://$host:$port/bitcoin/price/daily/itbit/USD
          |   Recent trades (itBit USD)     : http://$host:$port/bitcoin/trades/itbit/USD
          |   Trades raw response           : http://$host:$port/bitcoin/trades/bitstamp/USD?raw=true
+         | Bitcoin Random Trades Websocket Service:
+         |   Periodic random trades        : ws://$host:$port/bitcoin/random/trades
       """.stripMargin.trim)
   }
 }

@@ -23,6 +23,8 @@ trait JsonProtocol extends DefaultJsonProtocol {
 
   implicit val intervalFormat = jsonFormat2(Interval.apply)
   implicit val ohlcvFormat = jsonFormat8(OHLCV.apply)
+  // Explicit type parameters needed since Trade has multiple constructors
+  implicit val tradeFormat = jsonFormat3[Instant, Double, Double, Trade](Trade.apply)
 
 }
 

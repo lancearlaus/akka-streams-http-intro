@@ -9,4 +9,7 @@ case class Trade(timestamp: Instant, price: Double, amount: Double)
 object Trade {
   def apply(unixtime: Long, price: Double, amount: Double) =
     new Trade(Instant.ofEpochSecond(unixtime), price, amount)
+
+  def apply(price: Double, amount: Double) =
+    new Trade(Instant.now(), price, amount)
 }
