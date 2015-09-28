@@ -2,7 +2,9 @@
 
 Welcome to the sample code for my [Intro to Akka Streams & HTTP](http://slides.com/lancearlaus/akka-streams-http-intro) talk.
 
-This full version of the accompanying code demonstrates additional concepts and structure. Comments and feedback welcome.
+This full version of the accompanying code demonstrates additional concepts and structure. 
+Two simple services are used to demonstrate the basics of developing a streaming application and exposing it as an HTTP service.
+Comments and feedback welcome.
 
 ## Getting Started
 
@@ -23,3 +25,7 @@ Get started with the following URLs:
    Recent trades (itBit USD)     : http://localhost:8080/bitcoin/trades/itbit/USD
    Trades raw response           : http://localhost:8080/bitcoin/trades/bitstamp/USD?raw=true
 ```
+
+## Notes About the Code
+
+Two basic services are 
