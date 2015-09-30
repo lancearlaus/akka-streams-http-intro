@@ -7,9 +7,9 @@ import akka.stream.scaladsl._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{FlatSpec, Matchers}
-import streams.AkkaStreamsTest
+import support.AkkaStreamsScalatest
 
-class FlowsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class FlowsSpec extends FlatSpec with AkkaStreamsScalatest with Matchers with ScalaFutures {
 
   import bitcoin.FlowGraphs._
 

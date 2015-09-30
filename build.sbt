@@ -13,7 +13,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-experimental"             % "1.0",
   "com.typesafe.akka" %% "akka-http-spray-json-experimental"  % "1.0",
 
-  "org.scalatest"     %% "scalatest"                          % "2.2.1" % "test"
+  "org.scalatest"     %% "scalatest"                          % "2.2.1" % "test",
+  "com.typesafe.akka" %% "akka-stream-testkit-experimental"   % "1.0"   % "test",
+  "com.typesafe.akka" %% "akka-http-testkit-experimental"     % "1.0"   % "test"
 )
 
 homepage := Some(url("https://github.com/lancearlaus/akka-streams-http-intro"))

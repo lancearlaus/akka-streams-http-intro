@@ -14,12 +14,14 @@ import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
 import csv.Row
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 trait StockPriceClient {
   type Response[T] = Future[Either[(StatusCode, String), T]]
 
-  def history(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[Row, Any]]
+  def history(symbol: String, begin: LocalDate, end: LocalDate)(implicit ec: ExecutionContext): Response[Source[Row, Any]] =
+    rawHistory(symbol, begin, end).map(_.right.map(_.via(csv.parse())))
+
   def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]]
 }
 
@@ -42,9 +44,6 @@ case class YahooStockPriceClient(implicit
     )
     baseUri.withQuery(params)
   }
-
-  override def history(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[Row, Any]] =
-    rawHistory(symbol, begin, end).map(_.right.map(_.via(csv.parse())))
 
   override def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]] = {
     val uri = buildUri(symbol, begin, end)

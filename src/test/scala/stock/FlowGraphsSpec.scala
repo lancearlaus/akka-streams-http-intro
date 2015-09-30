@@ -3,14 +3,19 @@ package stock
 import akka.stream.scaladsl._
 import akka.util.{ByteString, ByteStringBuilder}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{FlatSpec, Matchers}
-import streams.AkkaStreamsTest
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.{WordSpec, FlatSpec, Matchers}
+import support.AkkaStreamsScalatest
 
 import scala.concurrent.Future
 
-class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class FlowGraphsSpec extends WordSpec with AkkaStreamsScalatest with Matchers with ScalaFutures {
 
   import stock.FlowGraphs._
+
+  implicit override def patienceConfig =
+    PatienceConfig(timeout = Span(500, Millis), interval = Span(50, Millis))
+
 
   val inCsv =
     """
@@ -29,74 +34,74 @@ class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with Sc
     """.stripMargin.trim
 
 
-  "SMA flow" should "calculate properly" in {
+  "calculate.sma flow" should {
 
-    val future = Source(1 to 5)
-      .map(n => (n*n).toDouble)
-      .via(calculate.sma(3))
-      .runFold(List.empty[Double])(_ :+ _)
-//      .runForeach(sma => println(f"$sma%1.2f")
+    "calculate simple moving average" in {
 
-    whenReady(future)(_.map(_.formatted("%1.2f")) shouldBe List("4.67", "9.67", "16.67"))
+      val future = Source(1 to 5)
+        .map(n => (n*n).toDouble)
+        .via(calculate.sma(3))
+        .runFold(Seq.empty[Double])(_ :+ _)
 
+      whenReady(future)(_.map(_.formatted("%1.2f")) shouldBe Seq("4.67", "9.67", "16.67"))
+
+    }
   }
 
 
-  "flow" should "append SMA" in {
-//    val inSource = SynchronousFileSource(new File("input.csv"))
-//    val expSource = SynchronousFileSource(new File("expected.csv"))
-//    val outSink = SynchronousFileSink(new File("output.csv"))
-//    val outSource = SynchronousFileSource(new File("output.csv"))
+  "quote.appendSma flow" should {
 
-    val inSource = Source.single(ByteString(inCsv))
-    val expSource = Source.single(ByteString(expCsv))
-    val builder = new ByteStringBuilder()
-    val outSink = Sink.foreach[ByteString](builder ++= _)
-    val outSource = Source(() => Iterator.single(builder.result()))
+    "append SMA column" in {
 
-//    println(s"inputCsv: $inputCsv")
+      val inSource = Source.single(ByteString(inCsv))
+      val expSource = Source.single(ByteString(expCsv))
+      val builder = new ByteStringBuilder()
+      val outSink = Sink.foreach[ByteString](builder ++= _)
+      val outSource = Source(() => Iterator.single(builder.result()))
 
-    val window = 3
-    val smaName = s"Adj Close SMA($window)"
+      val window = 3
+      val smaName = s"Adj Close SMA($window)"
 
-    val future = inSource.via(csv.parse().via(quote.appendSma(window)).via(csv.format)).runWith(outSink)
+      val future = inSource.via(csv.parse().via(quote.appendSma(window)).via(csv.format)).runWith(outSink)
 
-    whenReady(future) { unit =>
+      whenReady(future) { unit =>
 
-//      println(s"output: ${builder.result.utf8String}")
+        //      println(s"output: ${builder.result.utf8String}")
 
-      // Inspect row counts
-      val countRows = csv.parse().fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
-      val inCount = inSource.runWith(countRows)
-      val outCount = outSource.runWith(countRows)
+        // Inspect row counts
+        val countRows = csv.parse().fold(0)((c, _) => c + 1).toMat(Sink.head)(Keep.right)
+        val inCount = inSource.runWith(countRows)
+        val outCount = outSource.runWith(countRows)
 
-      whenReady(Future.sequence(Seq(inCount, outCount))) {
-        case inLines :: outLines ::  Nil =>
-          outLines shouldBe (inLines - window + 1)
+        // Output should have less lines than input
+        whenReady(Future.sequence(Seq(inCount, outCount))) {
+          case inLines :: outLines ::  Nil =>
+            outLines shouldBe (inLines - window + 1)
+        }
+
+        // Inspect header fields
+        val inFieldsFuture = inSource.via(csv.parse()).runWith(Sink.head)
+        val outFieldsFuture = outSource.via(csv.parse()).runWith(Sink.head)
+
+        whenReady(Future.sequence(Seq(inFieldsFuture, outFieldsFuture))) {
+          case inFields :: outFields :: Nil =>
+            outFields shouldBe (inFields :+ smaName)
+        }
+
+        // Compare SMA column from output and expected
+        val selectSma = csv.parse().via(csv.select(smaName)).drop(1).map(_.toDouble)
+        val outFuture = outSource.via(selectSma).runFold(Seq.empty[Double])(_ :+ _)
+        val expFuture = expSource.via(selectSma).runFold(Seq.empty[Double])(_ :+ _)
+
+        whenReady(Future.sequence(Seq(outFuture, expFuture))) {
+          case out :: exp :: Nil =>
+            out should have size exp.size
+            out.zip(exp).foreach { case (out, exp) =>
+              out shouldBe exp
+            }
+        }
+
       }
-
-      // Inspect header fields
-      val inFieldsFuture = inSource.via(csv.parse()).runWith(Sink.head)
-      val outFieldsFuture = outSource.via(csv.parse()).runWith(Sink.head)
-
-      whenReady(Future.sequence(Seq(inFieldsFuture, outFieldsFuture))) {
-        case inFields :: outFields :: Nil =>
-          outFields shouldBe (inFields :+ smaName)
-      }
-
-      // Compare SMA column from output and expected
-      val selectSma = csv.parse().via(csv.select(smaName)).drop(1).map(_.toDouble)
-      val outFuture = outSource.via(selectSma).runFold(List.empty[Double])(_ :+ _)
-      val expFuture = expSource.via(selectSma).runFold(List.empty[Double])(_ :+ _)
-
-      whenReady(Future.sequence(Seq(outFuture, expFuture))) {
-        case out :: exp :: Nil =>
-          out should have size exp.size
-          out.zip(exp).foreach { case (out, exp) =>
-            out shouldBe exp
-          }
-      }
-
     }
   }
 

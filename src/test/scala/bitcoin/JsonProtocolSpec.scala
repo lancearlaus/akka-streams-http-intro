@@ -6,10 +6,10 @@ import bitcoin.JsonProtocol._
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
-import streams.AkkaStreamsTest
+import support.AkkaStreamsScalatest
 import spray.json._
 
-class JsonProtocolSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class JsonProtocolSpec extends FlatSpec with AkkaStreamsScalatest with Matchers with ScalaFutures {
 
   "format" should "serialize OHLCV" in {
 

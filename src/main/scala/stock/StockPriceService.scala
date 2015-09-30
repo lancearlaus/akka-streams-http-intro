@@ -18,16 +18,16 @@ import stock.PeriodConversions._
 trait StockPriceService extends HttpService {
 
   private lazy val log = Logging(system, classOf[StockPriceService])
-  protected lazy val quotesClient: StockPriceClient = YahooStockPriceClient()
+  protected lazy val priceClient: StockPriceClient = YahooStockPriceClient()
 
-  val DefaultPeriod: Period = config.getString("service.stocks.period.default")
+  def defaultPeriod: Period = config.getString("service.stocks.period.default")
 
   abstract override def route =
     (get & pathPrefix("stock"/"price"/"daily")) {
-      (path(Segment) & parameters('raw.as[Boolean] ! true, 'period.as[Period] ? DefaultPeriod)) { (symbol, period) =>
+      (path(Segment) & parameters('raw.as[Boolean] ! true, 'period.as[Period] ? defaultPeriod)) { (symbol, period) =>
         complete(fetchRaw(symbol, period))
       } ~
-      (path(Segment) & parameters('period.as[Period] ? DefaultPeriod, 'calculated ? "sma(10)")) {
+      (path(Segment) & parameters('period.as[Period] ? defaultPeriod, 'calculated ? "sma(10)")) {
         (symbol, period, calculated) =>
           calculatedColumns(calculated.split(',') : _*) match {
             case Left(msg) => complete(BadRequest -> msg)
@@ -38,12 +38,12 @@ trait StockPriceService extends HttpService {
 
   private def fetch(symbol: String, period: Period, transformer: Flow[Row, ByteString, Any]) = {
     val now = LocalDate.now()
-    handle(quotesClient.history(symbol, now.minus(period), now), transformer)
+    handle(priceClient.history(symbol, now.minus(period), now), transformer)
   }
 
   private def fetchRaw(symbol: String, period: Period) = {
     val now = LocalDate.now()
-    handle(quotesClient.rawHistory(symbol, now.minus(period), now), Flow[ByteString])
+    handle(priceClient.rawHistory(symbol, now.minus(period), now), Flow[ByteString])
   }
 
   private def handle[T](response: StockPriceClient#Response[Source[T, _]], transformer: Flow[T, ByteString, Any]) = {

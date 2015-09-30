@@ -4,9 +4,9 @@ import akka.stream.scaladsl._
 import bitcoin.ws.FlowGraphs._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
-import streams.AkkaStreamsTest
+import support.AkkaStreamsScalatest
 
-class FlowGraphsSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class FlowGraphsSpec extends FlatSpec with AkkaStreamsScalatest with Matchers with ScalaFutures {
 
 //  implicit override def patienceConfig =
 //      PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))

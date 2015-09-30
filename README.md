@@ -25,3 +25,4 @@ Get started with the following URLs:
    Recent trades (itBit USD)     : http://localhost:8080/bitcoin/trades/itbit/USD
    Trades raw response           : http://localhost:8080/bitcoin/trades/bitstamp/USD?raw=true
 ```
+
