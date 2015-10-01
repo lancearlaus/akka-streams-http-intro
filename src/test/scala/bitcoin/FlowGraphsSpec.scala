@@ -14,7 +14,7 @@ class FlowGraphsSpec extends WordSpec with AkkaStreamsTest with Matchers with Sc
   import bitcoin.FlowGraphs._
 
   implicit override def patienceConfig =
-      PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))
+      PatienceConfig(timeout = Span(2, Seconds), interval = Span(50, Millis))
 
 
   "period.intervals flow" should {
@@ -27,7 +27,7 @@ class FlowGraphsSpec extends WordSpec with AkkaStreamsTest with Matchers with Sc
   "flow" should  {
 
     "calculate OHLCV" in {
-      val inFile = new File(getClass.getResource("/bitstampUSD.csv").getFile)
+      val inFile = new File(getClass.getResource("/mock/bitcoin/trades/bitstampUSD.csv").getFile)
       val inSource = SynchronousFileSource(inFile)
 
       val printSink = Sink.foreach[Any](println)
