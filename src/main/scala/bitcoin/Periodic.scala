@@ -1,13 +1,16 @@
 package bitcoin
 
-import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit._
+import java.time._
 
 import scala.math.Ordering.Implicits._
+import scala.util.Try
 
 
 // A half-open time interval [begin, end)
 case class Interval(begin: Instant, end:Instant) {
+  require(begin <= end)
   def contains(instant: Instant) = (begin <= instant) && (instant < end)
 }
 object Interval {
@@ -17,31 +20,38 @@ object Interval {
 
 // Segments a time line into aligned periodic intervals
 sealed trait Periodic {
-  // Returns the periodic interval containing an instant
+  // Returns the periodic interval containing an Instant
   def interval(instant: Instant): Interval
 }
 
 object Periodic {
-  // Calculates the periodic interval containing an instant
-  // for standard chronological units
-  def interval(instant: Instant, chronoUnit: ChronoUnit): Interval = {
-    val begin = instant.truncatedTo(chronoUnit)
-    val end = begin.plus(1, chronoUnit)
-    Interval(begin, end)
-  }
+
+  val DailyPattern = "(?i)daily".r
+  val ZonedDailyPattern = "(?i)daily\\(([^\\)]+\\))".r
+  val HourlyPattern = "(?i)hourly".r
 
   def unapply(s: String): Option[Periodic] = s match {
-    case s if s matches "(?i)daily" => Some(Daily)
-    case s if s matches "(?i)hourly" => Some(Hourly)
+    case HourlyPattern(_*)      => Some(Hourly)
+    case DailyPattern(_*)       => Some(Daily())
+    case ZonedDailyPattern(id)  => Try(ZoneId.of(id)).toOption.map(z => Daily(z))
     case _ => None
   }
 }
 
-case object Daily extends Periodic {
-  override def interval(instant: Instant) =
-    Periodic.interval(instant, ChronoUnit.DAYS)
+case class Daily(zoneId: ZoneId) extends Periodic {
+  override def interval(instant: Instant): Interval = {
+    val truncated = instant.atZone(zoneId).truncatedTo(DAYS).toInstant
+    Interval(truncated, truncated.plus(1, DAYS))
+  }
 }
-case object Hourly extends Periodic {
-  override def interval(instant: Instant) =
-    Periodic.interval(instant, ChronoUnit.HOURS)
+object Daily {
+  // Segment time line using system default time zone
+  def apply(): Daily = Daily(ZoneId.systemDefault)
+}
+
+object Hourly extends Periodic {
+  override def interval(instant: Instant): Interval = {
+    val truncated = instant.truncatedTo(HOURS)
+    Interval(truncated, truncated.plus(1, HOURS))
+  }
 }

@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.Suite
 
-trait HttpServiceScalatest extends ScalatestRouteTest { this: Suite =>
+trait HttpServiceTest extends ScalatestRouteTest { this: Suite =>
 
   var config: Config = _
   var log: LoggingAdapter = _

@@ -3,13 +3,13 @@ package stock
 import akka.stream.scaladsl._
 import akka.util.{ByteString, ByteStringBuilder}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.{WordSpec, FlatSpec, Matchers}
-import support.AkkaStreamsScalatest
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.{Matchers, WordSpec}
+import support.AkkaStreamsTest
 
 import scala.concurrent.Future
 
-class FlowGraphsSpec extends WordSpec with AkkaStreamsScalatest with Matchers with ScalaFutures {
+class FlowGraphsSpec extends WordSpec with AkkaStreamsTest with Matchers with ScalaFutures {
 
   import stock.FlowGraphs._
 

@@ -1,11 +1,10 @@
 package bitcoin.ws
 
 import akka.actor.Cancellable
-import akka.http.scaladsl.model.ws.{TextMessage, Message}
-import akka.stream.scaladsl.{FlowGraph, ZipWith, Flow, Source}
+import akka.http.scaladsl.model.ws.{Message, TextMessage}
+import akka.stream.scaladsl.{Flow, FlowGraph, Source, ZipWith}
 import bitcoin.Trade
 import spray.json._
-import akka.stream.scaladsl.FlowGraph.Implicits._
 
 import scala.util.Random
 

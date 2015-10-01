@@ -6,8 +6,8 @@ import akka.event.Logging
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.io.SynchronousFileSource
 import http.HttpService
 

@@ -1,11 +1,10 @@
 package http
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.reject
+import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import com.typesafe.config.Config
-
 
 import scala.concurrent.ExecutionContextExecutor
 

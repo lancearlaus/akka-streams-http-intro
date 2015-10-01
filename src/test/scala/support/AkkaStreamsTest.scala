@@ -6,7 +6,7 @@ import org.scalatest.Suite
 /**
  * Akka Streams testing support class that manages the lifecycle of a Materializer.
  */
-trait AkkaStreamsScalatest extends AkkaScalatest { suite: Suite =>
+trait AkkaStreamsTest extends AkkaTest { suite: Suite =>
 
   implicit var materializer: ActorMaterializer = _
 

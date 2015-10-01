@@ -1,7 +1,6 @@
 package csv
 
 import akka.stream.io.Framing
-import akka.stream.scaladsl.FlowGraph.Implicits._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 

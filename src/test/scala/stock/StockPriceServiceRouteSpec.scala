@@ -7,18 +7,19 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.scalatest.{Matchers, WordSpec}
-import support.HttpServiceScalatest
+import support.HttpServiceTest
 
 import scala.concurrent.Future
 
-class StockPriceServiceSpec extends WordSpec
-    with StockPriceService
+class StockPriceServiceRouteSpec
+    extends WordSpec
     with Matchers
-    with HttpServiceScalatest
+    with StockPriceService
+    with HttpServiceTest
 {
 
   override lazy val priceClient: StockPriceClient = new StockPriceClient {
-    private val data =
+    private val csv =
       """
         |Date,       Open,  High,  Low,   Close, Volume,  Adj Close
         |2014-12-31, 25.3,  25.3,  24.19, 24.84, 1438600, 24.84
@@ -30,8 +31,8 @@ class StockPriceServiceSpec extends WordSpec
     override def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]] = {
       symbol match {
         case "NotFound" => Future.successful(Left(NotFound -> NotFound.defaultMessage))
-        case "InternalServiceError" => Future.successful(Left(InternalServerError -> InternalServerError.defaultMessage))
-        case "Valid" => Future.successful(Right(Source.single(ByteString(data))))
+        case "InternalServerError" => Future.successful(Left(InternalServerError -> InternalServerError.defaultMessage))
+        case "Valid" => Future.successful(Right(Source.single(ByteString(csv))))
         case "Fail" => Future.failed(new Exception("test failed future"))
       }
     }
@@ -43,12 +44,15 @@ class StockPriceServiceSpec extends WordSpec
 
     "return data for valid symbol" in {
       Get(Uri(makePath("Valid")).withQuery("calculated" -> "sma(3)")) ~> route ~> check {
+        val data = responseAs[String]
+        val lines = data.split('\n')
+
         status shouldBe OK
-        responseAs[String].split('\n') should have size 3
-        responseAs[String] should include("Date")
-        responseAs[String] should include("Adj Close")
-        responseAs[String] should include("25.36")
-        responseAs[String] should not include("26.42")
+        lines should have size 3
+        data should include("Date")
+        data should include("Adj Close")
+        data should include("25.36")
+        data should not include("26.42")
 
       }
     }
@@ -60,7 +64,7 @@ class StockPriceServiceSpec extends WordSpec
     }
 
     "convert other client errors to ServiceUnavailable" in {
-      Get(makePath("InternalServiceError")) ~> route ~> check {
+      Get(makePath("InternalServerError")) ~> route ~> check {
         status shouldBe ServiceUnavailable
       }
     }

@@ -1,12 +1,13 @@
 package echo
 
 import org.scalatest.{Matchers, WordSpec}
-import support.HttpServiceScalatest
+import support.HttpServiceTest
 
-class EchoServiceSpec extends WordSpec
-    with EchoService
+class EchoServiceSpec
+    extends WordSpec
     with Matchers
-    with HttpServiceScalatest
+    with EchoService
+    with HttpServiceTest
 {
 
   "Echo service" should {

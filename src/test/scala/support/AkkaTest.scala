@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContextExecutor
 /**
  * Akka testing support class that manages the lifecycle of an ActorSystem.
  */
-trait AkkaScalatest extends BeforeAndAfterAll { suite: Suite =>
+trait AkkaTest extends BeforeAndAfterAll { suite: Suite =>
 
   implicit var system: ActorSystem = _
   implicit var executor: ExecutionContextExecutor = _
