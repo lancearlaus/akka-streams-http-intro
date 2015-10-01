@@ -1,8 +1,7 @@
 package bitcoin
 
-import java.time.temporal.ChronoUnit
-import java.time.temporal.ChronoUnit._
 import java.time._
+import java.time.temporal.ChronoUnit._
 
 import scala.math.Ordering.Implicits._
 import scala.util.Try
@@ -26,13 +25,13 @@ sealed trait Periodic {
 
 object Periodic {
 
-  val DailyPattern = "(?i)daily".r
-  val ZonedDailyPattern = "(?i)daily\\(([^\\)]+\\))".r
   val HourlyPattern = "(?i)hourly".r
+  val DailyPattern = "(?i)daily".r
+  val ZonedDailyPattern = "(?i)daily\\(([^\\)]+)\\)".r
 
-  def unapply(s: String): Option[Periodic] = s match {
+  def unapply(s: String)(implicit defaultZoneId: ZoneId = ZoneId.systemDefault): Option[Periodic] = s match {
     case HourlyPattern(_*)      => Some(Hourly)
-    case DailyPattern(_*)       => Some(Daily())
+    case DailyPattern(_*)       => Some(Daily(defaultZoneId))
     case ZonedDailyPattern(id)  => Try(ZoneId.of(id)).toOption.map(z => Daily(z))
     case _ => None
   }

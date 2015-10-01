@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 trait BitcoinTradesWebsocketService extends HttpService {
 
-  private lazy val logger = Logging(system, classOf[BitcoinTradesWebsocketService])
+  private lazy val log = Logging(system, classOf[BitcoinTradesWebsocketService])
 
   abstract override def route =
     (get & pathPrefix("bitcoin")) {
