@@ -12,13 +12,16 @@ import akka.util.ByteString
 import bitcoin.FlowGraphs._
 import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 
 trait BitcoinTradesClient {
   type Response[T] = Future[Either[(StatusCode, String), T]]
 
-  def history(symbol: String): Response[Source[Trade, Any]]
+  // Parses raw history stream as CSV and convert to Trades
+  def history(symbol: String)(implicit ec: ExecutionContext): Response[Source[Trade, Any]] =
+    rawHistory(symbol).map(_.right.map(_.via(csv.parse()).via(trade.fromRow)))
+
   def rawHistory(symbol: String): Response[Source[ByteString, Any]]
 }
 
@@ -32,9 +35,6 @@ case class BitcoinChartsTradesClient(implicit
   val config = ConfigFactory.load()
   val baseUri = Uri(config.getString("service.bitcoin.trades.url"))
 
-  override def history(symbol: String): Response[Source[Trade, Any]] =
-    rawHistory(symbol).map(_.right.map(_.via(csv.parse()).via(trade.fromRow)))
-
   override def rawHistory(symbol: String): Response[Source[ByteString, Any]] = {
     val uri = baseUri.withQuery(Map("symbol" -> symbol))
 
@@ -47,16 +47,7 @@ case class BitcoinChartsTradesClient(implicit
         case Found | NotFound => Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol)")
         case status           => Left(status -> s"Request to $uri failed with status $status")
       }
-//      response.status match {
-//        case OK => Future.successful(Right(response.entity.dataBytes))
-//        case Found | NotFound => Future.successful(
-//          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol)"))
-//        case status => Unmarshal(response.entity).to[String].map { entity =>
-//          val error = s"Request to $uri failed with status $status and entity $entity"
-//          logger.error(error)
-//          Left(status -> error)
-//        }
-//      }
+
     }
   }
 

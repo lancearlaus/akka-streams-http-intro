@@ -18,7 +18,7 @@ class StockPriceServiceRouteSpec
     with HttpServiceTest
 {
 
-  override lazy val priceClient: StockPriceClient = new StockPriceClient {
+  override lazy val priceClient = new StockPriceClient {
     private val csv =
       """
         |Date,       Open,  High,  Low,   Close, Volume,  Adj Close

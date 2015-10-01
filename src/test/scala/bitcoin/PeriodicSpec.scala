@@ -42,8 +42,8 @@ class PeriodicSpec extends WordSpec with Matchers {
       preInterval.end shouldBe interval.begin
     }
 
-    "default to system default ZoneId" in {
-      Daily().zoneId shouldBe ZoneId.systemDefault
+    "default to UTC" in {
+      Daily().zoneId shouldBe ZoneOffset.UTC
     }
   }
 
@@ -75,12 +75,12 @@ class PeriodicSpec extends WordSpec with Matchers {
       }
     }
 
-    "extract Daily" in {
+    "extract Daily with default ZoneId" in {
       "daily" match {
-        case Periodic(Daily(z)) => z shouldBe ZoneId.systemDefault
+        case Periodic(Daily(z)) => z shouldBe Daily.DefaultZoneId
       }
       "Daily" match {
-        case Periodic(Daily(z)) => z shouldBe ZoneId.systemDefault
+        case Periodic(Daily(z)) => z shouldBe Daily.DefaultZoneId
       }
     }
     "extract Daily with explicit ZoneId" in {

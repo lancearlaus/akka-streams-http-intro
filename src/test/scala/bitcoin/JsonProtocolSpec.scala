@@ -1,23 +1,27 @@
 package bitcoin
 
-import java.time.Instant
-
 import bitcoin.JsonProtocol._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
 import spray.json._
-import support.AkkaStreamsTest
 
-class JsonProtocolSpec extends FlatSpec with AkkaStreamsTest with Matchers with ScalaFutures {
+class JsonProtocolSpec extends WordSpec with Matchers with ScalaFutures {
 
-  "format" should "serialize OHLCV" in {
+  "Protocol" should {
 
-    val trade = Trade(Instant.now(), 100, 200)
-    val ohlcv = OHLCV(trade)
+    "write Trade as JSON" in {
+      val before = Trade(100, 200)
+      val after = before.toJson.convertTo[Trade]
 
-    val json = ohlcv.toJson
+      after shouldBe before
+    }
 
-    println(s"json:\n$json")
+    "write OHLCV as JSON" in {
+      val before = OHLCV(Trade(100, 200))
+      val after = before.toJson.convertTo[OHLCV]
+
+      after shouldBe before
+    }
 
   }
 

@@ -13,7 +13,7 @@ import http._
 
 trait BitcoinTradesService extends HttpService {
 
-  private lazy val logger = Logging(system, classOf[BitcoinTradesService])
+  private lazy val log = Logging(system, classOf[BitcoinTradesService])
   protected lazy val tradesClient: BitcoinTradesClient = BitcoinChartsTradesClient()
 
   abstract override def route =
@@ -33,6 +33,7 @@ trait BitcoinTradesService extends HttpService {
       }
     } ~ super.route
 
+  // Parse a path segment as a Periodic
   val PeriodicSegment = Segment.tflatMap {
     case Tuple1(s) => Periodic.unapply(s).map(p => Tuple1(p))
     case _ => None

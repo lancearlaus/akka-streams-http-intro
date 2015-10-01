@@ -29,7 +29,7 @@ object Periodic {
   val DailyPattern = "(?i)daily".r
   val ZonedDailyPattern = "(?i)daily\\(([^\\)]+)\\)".r
 
-  def unapply(s: String)(implicit defaultZoneId: ZoneId = ZoneId.systemDefault): Option[Periodic] = s match {
+  def unapply(s: String)(implicit defaultZoneId: ZoneId = Daily.DefaultZoneId): Option[Periodic] = s match {
     case HourlyPattern(_*)      => Some(Hourly)
     case DailyPattern(_*)       => Some(Daily(defaultZoneId))
     case ZonedDailyPattern(id)  => Try(ZoneId.of(id)).toOption.map(z => Daily(z))
@@ -44,8 +44,9 @@ case class Daily(zoneId: ZoneId) extends Periodic {
   }
 }
 object Daily {
+  val DefaultZoneId = ZoneOffset.UTC
   // Segment time line using system default time zone
-  def apply(): Daily = Daily(ZoneId.systemDefault)
+  def apply(): Daily = Daily(DefaultZoneId)
 }
 
 object Hourly extends Periodic {
