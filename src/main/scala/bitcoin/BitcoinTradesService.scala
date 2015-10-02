@@ -11,6 +11,13 @@ import akka.util.ByteString
 import bitcoin.FlowGraphs._
 import http._
 
+/**
+ * Calculates Open-High-Low-Close-Volume aggregates of Bitcoin trades.
+ *
+ * This class demonstrates the use of flows in transforming a response entity from an underlying service and
+ * the parsing of complex path segments.
+ *
+ */
 trait BitcoinTradesService extends HttpService {
 
   private lazy val log = Logging(system, classOf[BitcoinTradesService])

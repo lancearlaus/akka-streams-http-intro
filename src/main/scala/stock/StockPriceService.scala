@@ -15,6 +15,17 @@ import http._
 import stock.FlowGraphs._
 import stock.PeriodConversions._
 
+
+/**
+ * Enhances raw historical stock prices with calculated columns.
+ *
+ * This class demonstrates the use of flows in transforming a response entity from an underlying service and
+ * the parsing of complex query parameters.
+ *
+ * Stock prices are returned in CSV format with calculated clolumns appended.
+ * Also returns raw stock price information retrieved from underlying stock price client, for debugging purposes.
+ *
+ */
 trait StockPriceService extends HttpService {
 
   private lazy val log = Logging(system, classOf[StockPriceService])
@@ -22,19 +33,23 @@ trait StockPriceService extends HttpService {
 
   def defaultPeriod: Period = config.getString("service.stocks.period.default")
 
-  abstract override def route =
-    (get & pathPrefix("stock"/"price"/"daily")) {
-      (path(Segment) & parameters('raw.as[Boolean] ! true, 'period.as[Period] ? defaultPeriod)) { (symbol, period) =>
-        complete(fetchRaw(symbol, period))
-      } ~
-      (path(Segment) & parameters('period.as[Period] ? defaultPeriod, 'calculated ? "sma(10)")) {
-        (symbol, period, calculated) =>
-          calculatedColumns(calculated.split(',') : _*) match {
-            case Left(msg) => complete(BadRequest -> msg)
-            case Right(flow) => complete(fetch(symbol, period, flow.via(csv.format)))
-          }
+  abstract override def route = rawRoute ~ calculatedRoute ~ super.route
+
+
+  private lazy val rawRoute = (get &
+    path("stock"/"price"/"daily"/Segment) &
+    parameters('raw.as[Boolean] ! true, 'period.as[Period] ? defaultPeriod)) { (symbol, period) =>
+      complete(fetchRaw(symbol, period))
+    }
+
+  private lazy val calculatedRoute = (get &
+    path("stock"/"price"/"daily"/Segment) &
+    parameters('period.as[Period] ? defaultPeriod, 'calculated ? "sma(10)")) { (symbol, period, calculated) =>
+      calculatedColumns(calculated) match {
+        case Left(msg) => complete(BadRequest -> msg)
+        case Right(flow) => complete(fetch(symbol, period, flow.via(csv.format)))
       }
-    } ~ super.route
+    }
 
   private def fetch(symbol: String, period: Period, transformer: Flow[Row, ByteString, Any]) = {
     val now = LocalDate.now()
@@ -55,8 +70,9 @@ trait StockPriceService extends HttpService {
     }
   }
 
-  private def calculatedColumns(columns: String*): Either[String, Flow[Row, Row, Unit]] =
-    columns.foldLeft[Either[String, Flow[Row, Row, Unit]]](Right(Flow[Row])) {
+  // Convert a list of calculated columns into a flow that calculates and appends those columns
+  private def calculatedColumns(calculated: String): Either[String, Flow[Row, Row, Unit]] =
+    calculated.split(',').foldLeft[Either[String, Flow[Row, Row, Unit]]](Right(Flow[Row])) {
       case (Right(flow), col) => col match {
         case Sma(win) => Right(flow.via(quote.appendSma(win)))
         case _ => Left(s"Invalid calculated column $col")

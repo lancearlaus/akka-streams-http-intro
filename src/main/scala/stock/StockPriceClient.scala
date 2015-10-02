@@ -16,6 +16,7 @@ import csv.Row
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
+
 trait StockPriceClient {
   type Response[T] = Future[Either[(StatusCode, String), T]]
 
@@ -25,6 +26,9 @@ trait StockPriceClient {
   def rawHistory(symbol: String, begin: LocalDate, end: LocalDate): Response[Source[ByteString, Any]]
 }
 
+/**
+ * Retrieves historical stock prices from Yahoo Finance.
+ */
 case class YahooStockPriceClient(implicit
     system: ActorSystem,
     executor: ExecutionContextExecutor,
@@ -57,16 +61,6 @@ case class YahooStockPriceClient(implicit
         case NotFound => Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)")
         case status   => Left(status -> s"Request to $uri failed with status $status")
       }
-//      response.status match {
-//        case OK => Future.successful(Right(response.entity.dataBytes))
-//        case NotFound => Future.successful(
-//          Left(NotFound -> s"Invalid symbol or no data found (symbol=$symbol, begin=$begin, end=$end)"))
-//        case status => Unmarshal(response.entity).to[String].flatMap { entity =>
-//          val error = s"Request to $uri failed with status code $status and entity $entity"
-//          logger.error(error)
-//          Future.failed(new IOException(error))
-//        }
-//      }
     }
 
   }
