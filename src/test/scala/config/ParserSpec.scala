@@ -1,11 +1,11 @@
 package config
 
-import bitcoin.ws.Rate
+import rate.Rate
 import org.scalatest.{WordSpec, Matchers}
 
 import scala.concurrent.duration._
 
-class ParserSpec extends WordSpec with Matchers with CallParser {
+class ParserSpec extends WordSpec with Matchers with FunctionCallParser {
 
   "Duration parser" should {
 
@@ -50,16 +50,16 @@ class ParserSpec extends WordSpec with Matchers with CallParser {
   "Call parser" should {
 
     "parse call with empty arguments" in {
-      parseAll(call, "name()").get shouldBe Call("name", List.empty)
+      parseAll(call, "name()").get shouldBe FunctionCall("name", List.empty)
     }
 
     "parse call with non-empty arguments" in {
       parseAll(call, "name(300 per second)").get shouldBe
-        Call("name", List(Rate(300, Duration(1, SECONDS))))
+        FunctionCall("name", List(Rate(300, Duration(1, SECONDS))))
       parseAll(call, "name(1, 300 every 5 seconds, true)").get shouldBe
-        Call("name", List(1.0, Rate(300, Duration(5, SECONDS)), true))
+        FunctionCall("name", List(1.0, Rate(300, Duration(5, SECONDS)), true))
       parseAll(call, "name(1, 300 every 5 seconds, true, 10 millis)").get shouldBe
-        Call("name", List(1.0, Rate(300, Duration(5, SECONDS)), true, Duration(10, MILLISECONDS)))
+        FunctionCall("name", List(1.0, Rate(300, Duration(5, SECONDS)), true, Duration(10, MILLISECONDS)))
     }
   }
 

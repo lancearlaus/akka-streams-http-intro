@@ -1,21 +1,28 @@
 package config
 
-import bitcoin.ws.Rate
+import rate.Rate
 
 import scala.concurrent.duration._
 import scala.util.parsing.combinator.JavaTokenParsers
 
 
-case class Call(name: String, args: List[Any])
+/**
+ * Represents a named function call.
+ *
+ * @param name function name
+ * @param args invocation arguments
+ */
+case class FunctionCall(name: String, args: List[Any])
 
 
 /**
  * A simple function call parser combinator.
  *
  * Function calls are of the form `function(args)` where args is a (potentially empty) list of arguments.
+ * Example: "myfunc(1, 2.0, true, 5 seconds)
  */
-trait CallParser extends ArgumentsParser {
-  lazy val call: Parser[Call] = ident ~ args ^^ { case name ~ args => Call(name, args) }
+trait FunctionCallParser extends ArgumentsParser {
+  lazy val call: Parser[FunctionCall] = ident ~ args ^^ { case name ~ args => FunctionCall(name, args) }
 }
 
 /**
@@ -39,13 +46,16 @@ trait ArgumentsParser extends RateParser {
 /**
  * Parses a rate, which is a quantity over a finite duration.
  * Examples:
- * "1 / second"
+ * "1 / s"
  * "300 per second"
  * "1 every 3 seconds"
+ *
+ * Note: A word form of the quantity / duration separator must be used when specifying both a quantity and
+ * duration length.
+ * Example: "2 every 3 seconds", NOT "2 / 3 seconds"
  */
 trait RateParser extends DurationParser {
 
-  // TODO: Improve to support "1 / 2 seconds" instead of "1 per 2 seconds" workaround
   lazy val rate = expr ~ per ~ finiteDuration ^^ {
     case (quantity ~ per ~ duration) => Rate(eval(quantity), duration)
   }

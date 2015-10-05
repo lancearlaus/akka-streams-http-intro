@@ -1,5 +1,7 @@
 package bitcoin.ws
 
+import rate.Rate
+
 import scala.concurrent.duration.FiniteDuration
 
 object Poisson {

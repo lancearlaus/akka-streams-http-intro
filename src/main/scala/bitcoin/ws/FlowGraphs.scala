@@ -7,6 +7,7 @@ import akka.actor.{PoisonPill, Cancellable}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.scaladsl.{Flow, FlowGraph, Source, ZipWith}
 import bitcoin.Trade
+import rate.Rate
 import spray.json._
 
 import scala.concurrent.duration.FiniteDuration
@@ -30,7 +31,7 @@ object FlowGraphs {
     /**
      * Source that emits elements at a constant rate.
      */
-    def uniform(rate: Rate) = Source(Duration.Zero, rate.durationFor(1), rate.durationFor(1))
+    def constant(rate: Rate) = Source(Duration.Zero, rate.durationFor(1), rate.durationFor(1))
 
     /**
      * Source that emits elements with variable timing, according to a Poisson distribution with the given mean

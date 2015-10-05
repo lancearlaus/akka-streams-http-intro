@@ -1,8 +1,9 @@
 package bitcoin.ws
 
+import rate.Rate
 import org.scalatest.{Matchers, WordSpec}
 import scala.concurrent.duration._
-import bitcoin.ws.Rate._
+import Rate._
 
 class PoissonSpec extends WordSpec with Matchers {
 

@@ -1,12 +1,13 @@
 package bitcoin.ws
 
 import akka.stream.scaladsl.Source
+import rate.Rate
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import support.AkkaStreamsTest
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import bitcoin.ws.Rate._
+import Rate._
 
 class TickPublisherSpec extends WordSpec with Matchers with ScalaFutures with AkkaStreamsTest{
 

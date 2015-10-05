@@ -1,4 +1,4 @@
-package http
+package stage
 
 import akka.stream.stage.{Context, PushPullStage, SyncDirective, TerminationDirective}
 import akka.util.ByteString

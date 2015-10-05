@@ -8,15 +8,16 @@ import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import scala.concurrent.duration.{FiniteDuration, _}
 
 /**
- * Emits elements with potentially duration between elements.
+ * Emits elements with intervals specified by a Duration Source.
+ *
  * The duration between elements is determined by the supplied Duration iterator.
  * The purpose is to enable variable timing between elements to simulate real-world events that
  * may follow a statistical distribution (Poisson, for example).
  *
  * The scheduling algorithm is intentionally simple and does not attempt to perform adjustments to
- * match actual with desired element timing.
- * Scheduling is done using the Akka scheduler, so any caveats about timing regarding that scheduler
- * are applicable here.
+ * match actual with desired element timing/rate.
+ * Scheduling is done using the Akka scheduler, so any caveats about timing regarding that scheduler, notably
+ * its granularity, are applicable here. The actual emission rate is likely to be different (less) than desired.
  *
  * @param durations desired inter-event timings
  */

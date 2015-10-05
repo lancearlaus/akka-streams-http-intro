@@ -1,8 +1,8 @@
-package bitcoin.ws
+package rate
 
 import scala.concurrent.duration.FiniteDuration
 
-// Represents a quantity over time
+// Represents a quantity per duration of time
 case class Rate(quantity: Double, duration: FiniteDuration) {
 
   // Duration to emit the given quantity
