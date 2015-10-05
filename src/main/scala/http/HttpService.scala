@@ -37,7 +37,7 @@ trait HttpService {
   protected implicit val system: ActorSystem
   protected implicit def executor: ExecutionContextExecutor
   protected implicit def materializer: Materializer
-  protected def config: Config
+  protected implicit def config: Config
 
   // Services must supply service route by overriding this function
   def route: Route = reject

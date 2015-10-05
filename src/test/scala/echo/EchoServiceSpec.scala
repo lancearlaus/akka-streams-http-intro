@@ -3,6 +3,8 @@ package echo
 import org.scalatest.{Matchers, WordSpec}
 import support.HttpServiceTest
 
+import scala.concurrent.duration.Duration
+
 class EchoServiceSpec
     extends WordSpec
     with Matchers
@@ -19,6 +21,15 @@ class EchoServiceSpec
       }
     }
 
+  }
+
+  "Duration" should {
+
+    "not parse invalid time unit" in {
+      val duration = Duration(1, "bogus")
+
+      duration.unit should not be (null)
+    }
   }
 
 }
