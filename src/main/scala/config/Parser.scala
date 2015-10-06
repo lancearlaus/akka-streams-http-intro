@@ -1,6 +1,7 @@
 package config
 
-import rate.Rate
+
+import stream.rate.Rate
 
 import scala.concurrent.duration._
 import scala.util.parsing.combinator.JavaTokenParsers
@@ -44,7 +45,7 @@ trait ArgumentsParser extends RateParser {
 
 
 /**
- * Parses a rate, which is a quantity over a finite duration.
+ * Parses a model.rate, which is a quantity over a finite duration.
  * Examples:
  * "1 / s"
  * "300 per second"

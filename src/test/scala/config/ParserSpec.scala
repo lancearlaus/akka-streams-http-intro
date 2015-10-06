@@ -1,7 +1,7 @@
 package config
 
-import rate.Rate
 import org.scalatest.{WordSpec, Matchers}
+import stream.rate.Rate
 
 import scala.concurrent.duration._
 
@@ -24,13 +24,13 @@ class ParserSpec extends WordSpec with Matchers with FunctionCallParser {
 
   "Rate parser" should {
 
-    "parse rate without duration length" in {
+    "parse model.rate without duration length" in {
       parseAll(rate, "1 / second").get shouldBe Rate(1, Duration(1, SECONDS))
       parseAll(rate, "1 per second").get shouldBe Rate(1, Duration(1, SECONDS))
       parseAll(rate, "1 every second").get shouldBe Rate(1, Duration(1, SECONDS))
     }
 
-    "parse rate with duration length" in {
+    "parse model.rate with duration length" in {
       parseAll(rate, "2 per 2 seconds").get shouldBe Rate(2, Duration(2, SECONDS))
     }
   }

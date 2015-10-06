@@ -1,5 +1,5 @@
-import http.HttpServer
-import stock.mock.MockStockPriceService
+import service.http.HttpServer
+import service.stock.mock.MockStockPriceService
 
 // Mock server
 object Mock extends App

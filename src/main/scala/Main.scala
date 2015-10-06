@@ -1,7 +1,7 @@
-import bitcoin.BitcoinTradesService
-import bitcoin.ws.BitcoinTradesWebsocketService
-import http.HttpServer
-import stock.StockPriceService
+import service.bitcoin.BitcoinTradesService
+import service.bitcoin.ws.BitcoinTradesWebsocketService
+import service.http.HttpServer
+import service.stock.StockPriceService
 
 import scala.util.Success
 
